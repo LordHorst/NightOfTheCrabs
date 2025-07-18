@@ -10,7 +10,8 @@ public abstract class Location
     public string Description { get; }
     public LocationType LType { get; }
     public List<Item> _items;
-    private Dictionary<string, Location> _exits;
+    private Dictionary<string, Location?> _exits;
+    private bool _hasBeenVisited;
 
     public Location(string name, string description, LocationType lType)
     {
@@ -18,14 +19,15 @@ public abstract class Location
         Description = description;
         LType = lType;
         _items = new List<Item>();
-        _exits = new Dictionary<string, Location>();
+        _exits = new Dictionary<string, Location?>();
+        _hasBeenVisited = false;  // Initialize as not visited
         InitializeItems(); // Called during construction
     }
 
     // Abstract method that derived classes must implement to set up their initial items
     protected abstract void InitializeItems();
 
-    public void AddExit(string direction, Location destination)
+    public void AddExit(string direction, Location? destination)
     {
         _exits[direction.ToLower()] = destination;
     }
@@ -39,9 +41,7 @@ public abstract class Location
     {
         var item = _items.FirstOrDefault(i => i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
         if (item != null)
-        {
             _items.Remove(item);
-        }
 
         return item;
     }
@@ -56,17 +56,21 @@ public abstract class Location
         return _exits.TryGetValue(direction.ToLower(), out var location) ? location : null;
     }
 
-    public void DescribeLocation()
+    public void DescribeLocation(bool forceFullDescription = false)
     {
         TypeWriteLine($"\n{Name}");
-        TypeWriteLine(Description);
+        if (!_hasBeenVisited || forceFullDescription)
+        {
+            TypeWriteLine(Description);
+            _hasBeenVisited = true;
+        }
 
         if (_items.Any())
         {
             TypeWriteLine("\nYou can see:");
-            foreach (var item in _items)
+            foreach (var item in _items.ToList())
             {
-                TypeWriteLine($"- {item.Name}");
+                TypeWriteLine($"- {item.GetLocationDescription(LType)}");
             }
         }
 
@@ -78,5 +82,18 @@ public abstract class Location
                 TypeWriteLine($"- {exit.Key}");
             }
         }
+    }
+    
+    public virtual string GetDropDescription(string itemName)
+    {
+        return LType switch
+        {
+            LocationType.Kitchen => $"You put the {itemName} on the kitchen counter",
+            LocationType.House => $"You put the {itemName} on the table",
+            LocationType.Garden => $"You put the {itemName} on the garden bench",
+            LocationType.Outside => $"You put the {itemName} on the ground",
+            LocationType.Underwater => $"You release the {itemName} into the water",
+            _ => $"You drop the {itemName}"
+        };
     }
 }

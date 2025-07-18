@@ -10,8 +10,15 @@ public class Knife : Item
         CanBeUsed = true;
     }
 
-    public override string Use(LocationType currentLocation)
+    public override string Use()
     {
-        return TypeWriteLine("You probably shouldn't wave that knife around.");
+        if (_world == null)
+        {
+            TypeWriteLine("Error: Item not properly initialized");
+            return "";
+        }
+
+        TypeWriteLine("You probably shouldn't wave that knife around.");
+        return "";
     }
 }

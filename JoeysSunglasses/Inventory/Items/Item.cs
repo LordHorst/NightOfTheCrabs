@@ -12,6 +12,10 @@ public class Item
     
     protected List<LocationType> AllowedLocations { get; set; }
     protected List<LocationType> DisallowedLocations { get; set; }
+    protected bool RemoveAfterUse { get; set; } = false;
+    
+    private Inventory? _inventory;
+    protected World.World? _world;
 
 
     public Item(string name, string description)
@@ -20,7 +24,18 @@ public class Item
         Description = description;
         AllowedLocations = new List<LocationType>();
         DisallowedLocations = new List<LocationType>();
+    }
+    
+    public void SetGameState(World.World world, Inventory inventory)
+    {
+        _world = world;
+        _inventory = inventory;
+    }
 
+    protected bool RemoveFromInventory()
+    {
+        if (_inventory == null) return false;
+        return _inventory.RemoveItem(Name);
     }
 
     public virtual string Examine()
@@ -28,19 +43,34 @@ public class Item
         return Description;
     }
 
-    public virtual string Use(LocationType currentLocation)
+    public virtual string Use()
     {
-        if (!CanBeUsed)
-            return $"You can't use the {Name}.";
+        if (_world == null)
+            return "Error: Item not properly initialized";
         
-        if (DisallowedLocations.Contains(currentLocation))
-            return $"You can't use the {Name} here.";
+        var currentLocation = _world.GetCurrentLocation();
+        if (currentLocation != null)
+        {
+            var locationType = currentLocation.LType;
 
-        if (AllowedLocations.Any() && !AllowedLocations.Contains(currentLocation))
-            return $"You can't use the {Name} here.";
+            if (!CanBeUsed)
+                return $"You can't use the {Name}.";
+        
+            if (DisallowedLocations.Contains(locationType))
+                return $"You can't use the {Name} here.";
 
+            if (AllowedLocations.Any() && !AllowedLocations.Contains(locationType))
+                return $"You can't use the {Name} here.";
+        }
+
+        string result = $"You use the {Name}.";
+        
+        if (RemoveAfterUse)
+        {
+            RemoveFromInventory();
+        }
             
-        return $"You use the {Name}.";
+        return result;
     }
     
     protected void SetAllowedLocations(params LocationType[] locations)
@@ -54,5 +84,9 @@ public class Item
         DisallowedLocations.Clear();
         DisallowedLocations.AddRange(locations);
     }
-
+    public virtual string GetLocationDescription(LocationType locationType)
+    {
+        // Default implementation just returns the item name
+        return Name;
+    }
 }
