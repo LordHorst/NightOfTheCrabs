@@ -1,3 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using JoeysSunglasses;
 
-Console.WriteLine("Hello, World!");
+var Joey = new Joey();
+Joey.StartGame();
