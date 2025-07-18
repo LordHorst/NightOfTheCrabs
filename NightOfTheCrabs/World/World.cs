@@ -1,7 +1,7 @@
-using JoeysSunglasses.World.House;
-using static JoeysSunglasses.Output;
+using NightOfTheCrabs.World.House;
+using static NightOfTheCrabs.Output;
 
-namespace JoeysSunglasses.World;
+namespace NightOfTheCrabs.World;
 
 public class World
 {
@@ -85,7 +85,6 @@ public class World
     {
         _currentLocation?.DescribeLocation(forceFullDescription);
     }
-
 
     public Location? GetCurrentLocation() => _currentLocation;
 

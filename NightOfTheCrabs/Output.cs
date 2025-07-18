@@ -1,6 +1,6 @@
-using JoeysSunglasses.Inventory.Items;
+using NightOfTheCrabs.Inventory.Items;
 
-namespace JoeysSunglasses;
+namespace NightOfTheCrabs;
 
 public static class Output
 {

@@ -1,26 +1,26 @@
-using JoeysSunglasses.Inventory.Items;
-using static JoeysSunglasses.Output;
-using static JoeysSunglasses.World.World;
+using NightOfTheCrabs.Inventory.Items;
+using static NightOfTheCrabs.Output;
+using static NightOfTheCrabs.World.World;
 
-namespace JoeysSunglasses.World;
+namespace NightOfTheCrabs.World;
 
 public abstract class Location
 {
     public string Name { get; }
     public string Description { get; }
-    public LocationType LType { get; }
+    public World.LocationType LType { get; }
     public List<Item> _items;
     private Dictionary<string, Location?> _exits;
     private bool _hasBeenVisited;
 
-    public Location(string name, string description, LocationType lType)
+    public Location(string name, string description, World.LocationType lType)
     {
         Name = name;
         Description = description;
         LType = lType;
         _items = new List<Item>();
         _exits = new Dictionary<string, Location?>();
-        _hasBeenVisited = false;  // Initialize as not visited
+        _hasBeenVisited = false; // Initialize as not visited
         InitializeItems(); // Called during construction
     }
 
@@ -83,7 +83,7 @@ public abstract class Location
             }
         }
     }
-    
+
     public virtual string GetDropDescription(string itemName)
     {
         return LType switch
@@ -95,5 +95,15 @@ public abstract class Location
             LocationType.Underwater => $"You release the {itemName} into the water",
             _ => $"You drop the {itemName}"
         };
+    }
+
+    public Item? GetItem(string possItem)
+    {
+        var itemPresent =
+            _items.FirstOrDefault(i => i != null && i.Name.Equals(possItem, StringComparison.OrdinalIgnoreCase));
+        if (itemPresent != null)
+            return itemPresent;
+
+        return null;
     }
 }

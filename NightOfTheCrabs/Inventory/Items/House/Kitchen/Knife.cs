@@ -1,6 +1,5 @@
-using static JoeysSunglasses.Output;
-using static JoeysSunglasses.World.World;
-namespace JoeysSunglasses.Inventory.Items.House.Kitchen;
+using static NightOfTheCrabs.Output;
+namespace NightOfTheCrabs.Inventory.Items.House.Kitchen;
 
 public class Knife : Item
 {
@@ -12,11 +11,8 @@ public class Knife : Item
 
     public override string Use()
     {
-        if (_world == null)
-        {
-            TypeWriteLine("Error: Item not properly initialized");
+        if (!Init())
             return "";
-        }
 
         TypeWriteLine("You probably shouldn't wave that knife around.");
         return "";

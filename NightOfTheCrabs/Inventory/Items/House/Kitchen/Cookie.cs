@@ -1,9 +1,9 @@
-using static JoeysSunglasses.World.World;
-using static JoeysSunglasses.Output;
-using JoeysSunglasses.Inventory;
-using JoeysSunglasses.World;
+using static NightOfTheCrabs.World.World;
+using static NightOfTheCrabs.Output;
+using NightOfTheCrabs.Inventory;
+using NightOfTheCrabs.World;
 
-namespace JoeysSunglasses.Inventory.Items.House.Kitchen;
+namespace NightOfTheCrabs.Inventory.Items.House.Kitchen;
 
 public class Cookie : Item
 {
@@ -13,20 +13,17 @@ public class Cookie : Item
         CanBeUsed = true;
         RemoveAfterUse = true;
         //cannot be used under water
-        SetDisallowedLocations(LocationType.Underwater);
+        SetDisallowedLocations(World.World.LocationType.Underwater);
     }
 
     public override string Use()
     {
-        if (_world == null)
-        {
-            TypeWriteLine("Error: Item not properly initialized");
+        if (!Init())
             return "";
-        }
 
-        var currentLocation = _world.GetCurrentLocation();
+        var currentLocation = _world?.GetCurrentLocation();
         
-        if(currentLocation?.LType == LocationType.Underwater)
+        if(currentLocation?.LType == World.World.LocationType.Underwater)
             TypeWriteLine("The cookie would taste all watery!");
         else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
             TypeWriteLine("You cannot eat the cookie here!");

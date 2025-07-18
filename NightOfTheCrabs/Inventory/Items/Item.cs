@@ -1,35 +1,55 @@
-using JoeysSunglasses.World;
-using static JoeysSunglasses.World.World;
-
-namespace JoeysSunglasses.Inventory.Items;
+using static NightOfTheCrabs.World.World;
+using static NightOfTheCrabs.Output;
+namespace NightOfTheCrabs.Inventory.Items;
 
 public class Item
 {
     public string Name { get; set; }
     public string Description { get; set; }
-    public bool CanBePickedUp { get; set; } = true;
+    public bool CanBePickedUp { get; set; }
     public bool CanBeUsed { get; set; } = false;
+    public bool QuestItem { get; set; } = false;
     
-    protected List<LocationType> AllowedLocations { get; set; }
-    protected List<LocationType> DisallowedLocations { get; set; }
+    protected List<World.World.LocationType> AllowedLocations { get; set; }
+    protected List<World.World.LocationType> DisallowedLocations { get; set; }
     protected bool RemoveAfterUse { get; set; } = false;
     
-    private Inventory? _inventory;
+    protected Inventory? _inventory;
     protected World.World? _world;
 
 
-    public Item(string name, string description)
+    public Item(string name, string description, bool canBePickedUp = true)
     {
         Name = name;
         Description = description;
+        CanBePickedUp = canBePickedUp;
         AllowedLocations = new List<LocationType>();
         DisallowedLocations = new List<LocationType>();
     }
     
+    protected bool Init()
+    {
+        if (_world == null)
+        {
+            TypeWriteLine("Error: World not properly initialized");
+            return false;
+        }
+
+        if (_inventory == null)
+        {
+            TypeWriteLine("Error: Inventory not properly initialized");
+            return false;
+        }
+
+        return true;
+    }
+    
     public void SetGameState(World.World world, Inventory inventory)
     {
-        _world = world;
-        _inventory = inventory;
+        if (world != null && _world != world)
+            _world = world;
+        if(inventory != null && _inventory != inventory)
+            _inventory = inventory;
     }
 
     protected bool RemoveFromInventory()
@@ -73,20 +93,24 @@ public class Item
         return result;
     }
     
-    protected void SetAllowedLocations(params LocationType[] locations)
+    protected void SetAllowedLocations(params World.World.LocationType[] locations)
     {
         AllowedLocations.Clear();
         AllowedLocations.AddRange(locations);
     }
 
-    protected void SetDisallowedLocations(params LocationType[] locations)
+    protected void SetDisallowedLocations(params World.World.LocationType[] locations)
     {
         DisallowedLocations.Clear();
         DisallowedLocations.AddRange(locations);
     }
-    public virtual string GetLocationDescription(LocationType locationType)
+    public virtual string GetLocationDescription(World.World.LocationType locationType)
     {
         // Default implementation just returns the item name
         return Name;
+    }
+    public virtual string GetCantPickUpReason()
+    {
+        return CanBePickedUp ? string.Empty : $"The {Name} is too heavy to carry.";
     }
 }
