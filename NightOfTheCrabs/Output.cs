@@ -24,7 +24,7 @@ public static class Output
         Thread.Sleep(10); // 1 second delay after each line
     }
 
-    internal static string TypeWriteLine(string? text = null)
+    internal static string TypeWriteLine(string? text = null, int characterDelay = 30, int lineDelay = 3000)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -33,16 +33,17 @@ public static class Output
         }
 #if DEBUG
         Console.Write(text);
+        lineDelay = 1;
 #else
         foreach (char c in text)
         {
             Console.Write(c);
-            Thread.Sleep(30); // 30ms delay between each character
+            Thread.Sleep(characterDelay); // 30ms delay between each character
         }
 #endif
 
         Console.WriteLine();
-        Thread.Sleep(10); // 1 second delay after each line
+        Thread.Sleep(lineDelay);
         return "";
     }
 

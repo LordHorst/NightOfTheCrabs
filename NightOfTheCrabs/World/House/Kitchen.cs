@@ -9,9 +9,9 @@ public class Kitchen() : Location("Kitchen",
 {
     protected override void InitializeItems()
     {
-        _items.Add(new Knife());
-        _items.Add(new Cookie());
-        _items.Add(new Tobacco());
-        _items.Add(new Blender());
+        Items.Add(new Knife());
+        Items.Add(new Cookie());
+        Items.Add(new Tobacco());
+        Items.Add(new Blender());
     }
 }

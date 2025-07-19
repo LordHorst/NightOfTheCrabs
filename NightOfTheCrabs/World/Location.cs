@@ -6,21 +6,22 @@ namespace NightOfTheCrabs.World;
 
 public abstract class Location
 {
-    public string Name { get; }
-    public string Description { get; }
-    public World.LocationType LType { get; }
-    public List<Item> _items;
-    private Dictionary<string, Location?> _exits;
+    private string Name { get; }
+    private string Description { get; }
+    public LocationType LType { get; }
+    protected readonly List<Item> Items;
+    private readonly Dictionary<string, Location?> _exits;
     private bool _hasBeenVisited;
 
-    public Location(string name, string description, World.LocationType lType)
+    protected Location(string name, string description, LocationType lType)
     {
         Name = name;
         Description = description;
         LType = lType;
-        _items = new List<Item>();
+        Items = [];
         _exits = new Dictionary<string, Location?>();
         _hasBeenVisited = false; // Initialize as not visited
+        // ReSharper disable once VirtualMemberCallInConstructor
         InitializeItems(); // Called during construction
     }
 
@@ -34,26 +35,26 @@ public abstract class Location
 
     public void AddItem(Item item)
     {
-        _items.Add(item);
+        Items.Add(item);
     }
 
     public Item? RemoveItem(string itemName)
     {
-        var item = _items.FirstOrDefault(i => i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+        var item = Items.FirstOrDefault(i => i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
         if (item != null)
-            _items.Remove(item);
+            Items.Remove(item);
 
         return item;
     }
 
     public bool HasItem(string itemName)
     {
-        return _items.Any(i => i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+        return Items.Any(i => i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
     }
 
     public Location? GetExit(string direction)
     {
-        return _exits.TryGetValue(direction.ToLower(), out var location) ? location : null;
+        return _exits.GetValueOrDefault(direction.ToLower());
     }
 
     public void DescribeLocation(bool forceFullDescription = false)
@@ -65,10 +66,10 @@ public abstract class Location
             _hasBeenVisited = true;
         }
 
-        if (_items.Any())
+        if (Items.Any())
         {
             TypeWriteLine("\nYou can see:");
-            foreach (var item in _items.ToList())
+            foreach (var item in Items.ToList())
             {
                 TypeWriteLine($"- {item.GetLocationDescription(LType)}");
             }
@@ -100,7 +101,7 @@ public abstract class Location
     public Item? GetItem(string possItem)
     {
         var itemPresent =
-            _items.FirstOrDefault(i => i != null && i.Name.Equals(possItem, StringComparison.OrdinalIgnoreCase));
+            Items.FirstOrDefault(i => i != null && i.Name.Equals(possItem, StringComparison.OrdinalIgnoreCase));
         if (itemPresent != null)
             return itemPresent;
 

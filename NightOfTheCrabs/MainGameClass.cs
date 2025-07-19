@@ -1,4 +1,3 @@
-using NightOfTheCrabs.Inventory.Items;
 using static NightOfTheCrabs.Output;
 
 namespace NightOfTheCrabs;
@@ -9,7 +8,6 @@ public class MainGameClass
 {
     private readonly World.World _world;
     private readonly CommandHandler _commandHandler;
-    private readonly Item _item;
 
     private string[] _direction = new[]
     {
@@ -32,10 +30,14 @@ public class MainGameClass
 
     public void StartGame()
     {
-        TypeWriteLine("Night of the Crabs!");
-        TypeWriteLine(
-            "     /\\\n    ( /   @ @    ()\n     \\  __| |__  /\n      -/   \"   \\-\n     /-|       |-\\\n    / /-\\     /-\\ \\\n     / /-`---'-\\ \\ \n      /         \\");
-        TypeWriteLine(" -- A text adventure based on the novel by Guy N. Smith");
+#if !DEBUG
+        Story.TitleSequence();
+        Console.ReadLine();
+        Story.IntroText();
+        Console.ReadLine();
+        Story.PostIntro();
+        Console.ReadLine();
+#endif
         // Force full description of starting location
         _world.DescribeCurrentLocation(forceFullDescription: true);
         TypeWriteLine("What do you do?");
