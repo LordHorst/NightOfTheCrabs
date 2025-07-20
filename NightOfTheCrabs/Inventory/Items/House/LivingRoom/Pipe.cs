@@ -1,3 +1,4 @@
+using NightOfTheCrabs.World;
 using static NightOfTheCrabs.Output;
 
 namespace NightOfTheCrabs.Inventory.Items.House.LivingRoom;
@@ -5,10 +6,10 @@ namespace NightOfTheCrabs.Inventory.Items.House.LivingRoom;
 public class Pipe : Item
 {
     public Pipe()
-        : base("Pipe", "A briar pipe. It's your most beloved pipe.")
+        : base("Pipe", "A briar pipe. It's your most beloved pipe.", associatedKnowledge: KnowledgeType.HavePipe)
     {
         CanBeUsed = true;
-        SetDisallowedLocations(World.World.LocationType.Underwater);
+        SetDisallowedLocations(NightOfTheCrabs.World.World.LocationType.Underwater);
     }
 
     public override string Use()
@@ -16,10 +17,10 @@ public class Pipe : Item
         if (!Init())
             return "";
         
-        var currentLocation = _world?.GetCurrentLocation();
-        if (_inventory != null && !_inventory.HasItem("tobacco"))
+        var currentLocation = World?.GetCurrentLocation();
+        if (Inventory != null && !Inventory.HasItem("tobacco"))
             TypeWriteLine("You really want to smoke your pipe, but you are missing a vital ingredient. You are out of tobacco!");
-        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
+        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine(
                 "You really want to light your pipe to calm your nerves, but you simply do not how you can possibly do so while being submerged underwater.");
         else
@@ -33,10 +34,10 @@ public class Pipe : Item
     {
         return locationType switch
         {
-            World.World.LocationType.House => "Your pipe on a wooden table",
-            World.World.LocationType.Kitchen => "Your pipe on the kitchen counter",
-            World.World.LocationType.Garden => "Your pipe on a garden bench",
-            World.World.LocationType.Outside => "Your pipe on the ground",
+            NightOfTheCrabs.World.World.LocationType.House => "Your pipe on a wooden table",
+            NightOfTheCrabs.World.World.LocationType.Kitchen => "Your pipe on the kitchen counter",
+            NightOfTheCrabs.World.World.LocationType.Garden => "Your pipe on a garden bench",
+            NightOfTheCrabs.World.World.LocationType.Outside => "Your pipe on the ground",
             _ => "Your pipe"
         };
     }

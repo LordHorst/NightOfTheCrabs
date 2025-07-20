@@ -1,4 +1,3 @@
-using NightOfTheCrabs.Inventory.Items;
 using NightOfTheCrabs.Inventory.Items.House.LivingRoom;
 using static NightOfTheCrabs.World.World;
 
@@ -14,7 +13,8 @@ A reel-to-reel tape recorder sits beside a stack of notebooks, some half-filled 
 The only sign of recent disruption is the telegram resting beside the whisky glass on the table — its message folded, read, and reread.
 
 It is a room made for quiet thought, not comfort. A place to think, to plan. A sanctuary from the irrational.",
-    World.LocationType.House)
+    WorldLocationType.London,
+    LocationType.House)
 {
     protected override void InitializeItems()
     {

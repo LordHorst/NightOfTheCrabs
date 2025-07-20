@@ -26,10 +26,18 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
     private static readonly string[] MoveCommands = ["go", "move", "run"];
     private static readonly string[] ExamineCommands = ["examine", "look"];
     private static readonly string[] InventoryCommands = ["list", "inventory", "inv", "i"];
+    private static readonly string[] TravelCommands = ["go", "travel", "head"];
 
     public void HandleCommand(string userAction)
     {
         var normalizedInput = userAction.ToLower().Trim();
+#if DEBUG
+        if (normalizedInput.Equals("cl"))
+        {
+            Console.WriteLine(world.GetCurrentLocation());
+            return;
+        }
+#endif
         var (commandType, remainingText) = DetermineCommandTypeAndRemainingText(normalizedInput);
 
         switch (commandType)
@@ -64,7 +72,7 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
                 break;
         }
     }
-    
+
     private (CommandType type, string remainingText) DetermineCommandTypeAndRemainingText(string input)
     {
         // Check exact matches first
@@ -132,9 +140,8 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
             TypeWriteLine("I don't know how to drop that.");
         else
             DropItem(itemName);
-
     }
-    
+
     private void HandleExamineItemCommand(string itemName)
     {
         var item = GetItem(itemName);
@@ -149,9 +156,23 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
         else
             TypeWriteLine("I found no item to use.");
     }
-    
+
     private void HandleMoveCommand(string input)
     {
+        // First try special travel destinations
+        if (TravelCommands.Any(cmd => input.StartsWith(cmd)))
+        {
+            var destination = input.Split(' ', 2)[1];
+            // either we get to our new destination or we don't. We need to exit here either way
+            world.TryTravelTo(destination);
+            return;
+        }
+        else if (world.TryTravelTo(input)) // Try direct destination name
+        {
+            return;
+        }
+
+        // If not a special desitnation, try nomal direction movement
         foreach (var direction1 in direction)
         {
             if (input.Contains(direction1))
@@ -173,7 +194,7 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
             TypeWriteLine("Something went wrong with the current location.");
             return;
         }
-        
+
         if (!currentLocation.HasItem(itemName))
         {
             TypeWriteLine($"There is no {itemName} here to take.");
@@ -203,6 +224,7 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
 
         if (inv.AddItem(item))
         {
+            item.OnPickUp();
             TypeWriteLine($"You pick up the {item.Name}.");
             return;
         }
@@ -242,6 +264,7 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
 
         if (inv.RemoveItem(itemName))
         {
+            item.OnDrop();
             currentLocation.AddItem(item);
             TypeWriteLine(currentLocation.GetDropDescription(itemName));
             return;
@@ -255,7 +278,7 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
         if (string.IsNullOrWhiteSpace(itemName)) return null;
 
         var currentLocation = world.GetCurrentLocation();
-        
+
         // Try to find item in inventory first
         var item = inv.GetItem(itemName);
         if (item != null) return item;

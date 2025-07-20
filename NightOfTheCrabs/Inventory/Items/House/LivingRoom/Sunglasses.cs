@@ -16,8 +16,8 @@ public class Sunglasses : Item
         if (!Init())
             return "";
 
-        var currentLocation = _world?.GetCurrentLocation();
-        if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
+        var currentLocation = World?.GetCurrentLocation();
+        if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine("You try to put on the sunglasses, but it feels silly to wear them inside.");
         else
             TypeWriteLine("You put on the sunglasses. Everything looks cooler now.");

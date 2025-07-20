@@ -3,9 +3,11 @@ using static NightOfTheCrabs.World.World;
 
 namespace NightOfTheCrabs.World.House;
 
-public class Kitchen() : Location("Kitchen",
+public class Kitchen() : Location(
+    "Kitchen",
     "A cozy kitchen with modern appliances. The counter is spotless and something smells delicious.",
-    World.LocationType.Kitchen)
+    WorldLocationType.London,
+    LocationType.Kitchen)
 {
     protected override void InitializeItems()
     {

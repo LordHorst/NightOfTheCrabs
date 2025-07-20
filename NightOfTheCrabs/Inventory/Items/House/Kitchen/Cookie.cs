@@ -13,7 +13,7 @@ public class Cookie : Item
         CanBeUsed = true;
         RemoveAfterUse = true;
         //cannot be used under water
-        SetDisallowedLocations(World.World.LocationType.Underwater);
+        SetDisallowedLocations(NightOfTheCrabs.World.World.LocationType.Underwater);
     }
 
     public override string Use()
@@ -21,11 +21,11 @@ public class Cookie : Item
         if (!Init())
             return "";
 
-        var currentLocation = _world?.GetCurrentLocation();
+        var currentLocation = World?.GetCurrentLocation();
         
-        if(currentLocation?.LType == World.World.LocationType.Underwater)
+        if(currentLocation?.LocationType == NightOfTheCrabs.World.World.LocationType.Underwater)
             TypeWriteLine("The cookie would taste all watery!");
-        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
+        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine("You cannot eat the cookie here!");
         else if (RemoveFromInventory())
             TypeWriteLine("You eat the cookie. Yum!");

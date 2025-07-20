@@ -1,13 +1,14 @@
+using NightOfTheCrabs.World;
 using static NightOfTheCrabs.Output;
 
 namespace NightOfTheCrabs.Inventory.Items.House.Kitchen;
 
 public class Tobacco : Item
 {
-    public Tobacco() : base("Tobacco", "A pouch of tobacco")
+    public Tobacco() : base("Tobacco", "A pouch of tobacco", associatedKnowledge: KnowledgeType.HaveTobacco)
     {
         CanBeUsed = true;
-        SetDisallowedLocations(World.World.LocationType.Underwater);
+        SetDisallowedLocations(NightOfTheCrabs.World.World.LocationType.Underwater);
     }
     
     public override string Use()
@@ -15,10 +16,10 @@ public class Tobacco : Item
         if(!Init())
             return "";
         
-        var currentLocation = _world?.GetCurrentLocation();
-        if (_inventory != null && !_inventory.HasItem("pipe"))
+        var currentLocation = World?.GetCurrentLocation();
+        if (Inventory != null && !Inventory.HasItem("pipe"))
             TypeWriteLine("You consider chewing on your tobacco for a second, but decide against it.");
-        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
+        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine(
                 "Using your tobbacco here would make it quite wet.");
         else
@@ -32,10 +33,10 @@ public class Tobacco : Item
     {
         return locationType switch
         {
-            World.World.LocationType.House => "Tobacco on a wooden table",
-            World.World.LocationType.Kitchen => "Tobacco on the kitchen counter",
-            World.World.LocationType.Garden => "Tobacco on a garden bench",
-            World.World.LocationType.Outside => "Tobacco on the ground",
+            NightOfTheCrabs.World.World.LocationType.House => "Tobacco on a wooden table",
+            NightOfTheCrabs.World.World.LocationType.Kitchen => "Tobacco on the kitchen counter",
+            NightOfTheCrabs.World.World.LocationType.Garden => "Tobacco on a garden bench",
+            NightOfTheCrabs.World.World.LocationType.Outside => "Tobacco on the ground",
             _ => "Tobacco"
         };
     }

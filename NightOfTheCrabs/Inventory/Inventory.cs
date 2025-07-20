@@ -2,51 +2,45 @@ using NightOfTheCrabs.Inventory.Items;
 using static NightOfTheCrabs.Output;
 namespace NightOfTheCrabs.Inventory;
 
-public class Inventory
+public class Inventory(World.World world)
 {
-    private List<Item?> items = new();
-    private World.World _world;
-    
-    public Inventory(World.World world)
-    {
-        _world = world;
-    }
+    private readonly List<Item?> _items = [];
 
     public bool AddItem(Item? item)
     {
         if (item == null)
             return false;
             
-        item.SetGameState(_world, this);
-        items.Add(item);
+        item.SetGameState(world, this);
+        _items.Add(item);
         return true;
     }
 
     public bool RemoveItem(Item? item)
     {
-        var itemPresent = items.Contains(item);
+        var itemPresent = _items.Contains(item);
         if (itemPresent)
-            return items.Remove(item);
+            return _items.Remove(item);
         
         return false;
     }
     
     public bool RemoveItem(string itemName)
     {
-        var itemPresent = items.FirstOrDefault(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+        var itemPresent = _items.FirstOrDefault(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
         if (itemPresent != null)
-            return items.Remove(itemPresent);
+            return _items.Remove(itemPresent);
         
         return false;
     }
 
     public bool GetItem(Item? item)
     {
-        return items.Contains(item);
+        return _items.Contains(item);
     }
     public Item? GetItem(string itemName)
     {
-        var itemPresent = items.FirstOrDefault(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+        var itemPresent = _items.FirstOrDefault(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
         if (itemPresent != null)
             return itemPresent;
         
@@ -55,15 +49,15 @@ public class Inventory
 
     public bool HasItem(Item? item)
     {
-        return items.Contains(item);
+        return _items.Contains(item);
     }
     public bool HasItem(string itemName)
     {
-        return items.Any(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+        return _items.Any(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
     }
 
     public void ListItems()
     {
-        InventoryItems(items);
+        InventoryItems(_items);
     }
 }

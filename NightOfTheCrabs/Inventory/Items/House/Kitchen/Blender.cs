@@ -9,7 +9,7 @@ public class Blender : Item
     {
         CanBeUsed = true;
         CanBePickedUp = false;
-        SetDisallowedLocations(World.World.LocationType.Outside);
+        SetDisallowedLocations(NightOfTheCrabs.World.World.LocationType.Outside);
     }
     
     public override string Use()
@@ -17,11 +17,11 @@ public class Blender : Item
         if (!Init())
             return "";
         
-        var currentLocation = _world?.GetCurrentLocation();
-        if (currentLocation is { LType: World.World.LocationType.Underwater })
+        var currentLocation = World?.GetCurrentLocation();
+        if (currentLocation is { LocationType: NightOfTheCrabs.World.World.LocationType.Underwater })
             TypeWriteLine(
                 "You really should not be messing around with electrical devices while being underwater. Besides, there is no power outlet to be found anywhere.");
-        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
+        else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine("You are outside, far from any power outlet. Wireless power has not been invented yet.");
         else
             TypeWriteLine(

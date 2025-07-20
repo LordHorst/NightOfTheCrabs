@@ -8,16 +8,17 @@ public abstract class Location
 {
     private string Name { get; }
     private string Description { get; }
-    public LocationType LType { get; }
+    public WorldLocationType WorldLocationType { get; }
+    public LocationType LocationType { get; }
     protected readonly List<Item> Items;
     private readonly Dictionary<string, Location?> _exits;
     private bool _hasBeenVisited;
 
-    protected Location(string name, string description, LocationType lType)
+    protected Location(string name, string description, WorldLocationType worldLocationType, LocationType locationType)
     {
         Name = name;
         Description = description;
-        LType = lType;
+        LocationType = locationType;
         Items = [];
         _exits = new Dictionary<string, Location?>();
         _hasBeenVisited = false; // Initialize as not visited
@@ -71,7 +72,7 @@ public abstract class Location
             TypeWriteLine("\nYou can see:");
             foreach (var item in Items.ToList())
             {
-                TypeWriteLine($"- {item.GetLocationDescription(LType)}");
+                TypeWriteLine($"- {item.GetLocationDescription(LocationType)}");
             }
         }
 
@@ -87,7 +88,7 @@ public abstract class Location
 
     public virtual string GetDropDescription(string itemName)
     {
-        return LType switch
+        return LocationType switch
         {
             LocationType.Kitchen => $"You put the {itemName} on the kitchen counter",
             LocationType.House => $"You put the {itemName} on the table",

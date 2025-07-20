@@ -1,41 +1,29 @@
-using static NightOfTheCrabs.World.World;
+using NightOfTheCrabs.World;
 using static NightOfTheCrabs.Output;
 namespace NightOfTheCrabs.Inventory.Items;
 
-public class Item
+public class Item(string name, string description, bool canBePickedUp = true, KnowledgeType? associatedKnowledge = null)
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public bool CanBePickedUp { get; set; }
-    public bool CanBeUsed { get; set; } = false;
-    public bool QuestItem { get; set; } = false;
-    
-    protected List<World.World.LocationType> AllowedLocations { get; set; }
-    protected List<World.World.LocationType> DisallowedLocations { get; set; }
-    protected bool RemoveAfterUse { get; set; } = false;
-    
-    protected Inventory? _inventory;
-    protected World.World? _world;
+    public string Name { get; set; } = name;
+    public string Description { get; protected set; } = description;
+    public bool CanBePickedUp { get; protected init; } = canBePickedUp;
+    protected bool CanBeUsed { get; init; }
+    private List<World.World.LocationType> AllowedLocations { get; } = [];
+    protected List<World.World.LocationType> DisallowedLocations { get; } = [];
+    protected bool RemoveAfterUse { get; init; }
+    protected Inventory? Inventory;
+    protected World.World? World;
+    protected KnowledgeType? AssociatedKnowledge { get; init; } = associatedKnowledge;
 
-
-    public Item(string name, string description, bool canBePickedUp = true)
-    {
-        Name = name;
-        Description = description;
-        CanBePickedUp = canBePickedUp;
-        AllowedLocations = new List<LocationType>();
-        DisallowedLocations = new List<LocationType>();
-    }
-    
     protected bool Init()
     {
-        if (_world == null)
+        if (World == null)
         {
             TypeWriteLine("Error: World not properly initialized");
             return false;
         }
 
-        if (_inventory == null)
+        if (Inventory == null)
         {
             TypeWriteLine("Error: Inventory not properly initialized");
             return false;
@@ -46,16 +34,15 @@ public class Item
     
     public void SetGameState(World.World world, Inventory inventory)
     {
-        if (world != null && _world != world)
-            _world = world;
-        if(inventory != null && _inventory != inventory)
-            _inventory = inventory;
+        if (world != null && World != world)
+            World = world;
+        if(inventory != null && Inventory != inventory)
+            Inventory = inventory;
     }
 
     protected bool RemoveFromInventory()
     {
-        if (_inventory == null) return false;
-        return _inventory.RemoveItem(Name);
+        return Inventory != null && Inventory.RemoveItem(Name);
     }
 
     public virtual string Examine()
@@ -65,13 +52,13 @@ public class Item
 
     public virtual string Use()
     {
-        if (_world == null)
+        if (World == null)
             return "Error: Item not properly initialized";
         
-        var currentLocation = _world.GetCurrentLocation();
+        var currentLocation = World.GetCurrentLocation();
         if (currentLocation != null)
         {
-            var locationType = currentLocation.LType;
+            var locationType = currentLocation.LocationType;
 
             if (!CanBeUsed)
                 return $"You can't use the {Name}.";
@@ -112,5 +99,20 @@ public class Item
     public virtual string GetCantPickUpReason()
     {
         return CanBePickedUp ? string.Empty : $"The {Name} is too heavy to carry.";
+    }
+    public void OnPickUp()
+    {
+        if (AssociatedKnowledge.HasValue && World?.GetCharacterKnowledge() != null)
+        {
+            World.GetCharacterKnowledge().Discover(AssociatedKnowledge.Value);
+        }
+    }
+
+    public void OnDrop()
+    {
+        if (AssociatedKnowledge.HasValue && World?.GetCharacterKnowledge() != null)
+        {
+            World.GetCharacterKnowledge().Lost(AssociatedKnowledge.Value);
+        }
     }
 }

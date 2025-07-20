@@ -10,7 +10,7 @@ public class WhiskeyGlass : Item
         : base("Whiskey Glass", "A whiskey glass. It is full.")
     {
         CanBeUsed = true;
-        SetDisallowedLocations(World.World.LocationType.Underwater);
+        SetDisallowedLocations(NightOfTheCrabs.World.World.LocationType.Underwater);
     }
 
     public override string Use()
@@ -20,11 +20,11 @@ public class WhiskeyGlass : Item
 
         if (_isFull)
         {
-            var currentLocation = _world?.GetCurrentLocation();
-            if (_inventory != null && !_inventory.HasItem("tobacco"))
+            var currentLocation = World?.GetCurrentLocation();
+            if (Inventory != null && !Inventory.HasItem("tobacco"))
                 TypeWriteLine(
                     "You really want to smoke your pipe, but you are missing a vital ingredient. You are out of tobacco!");
-            else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LType))
+            else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
                 TypeWriteLine(
                     "You cannot drink whiskey while being underwater.");
             else
@@ -47,10 +47,10 @@ public class WhiskeyGlass : Item
     {
         var returnText = locationType switch
         {
-            World.World.LocationType.House => "A whiskey glass on a table besides the arm-chair",
-            World.World.LocationType.Kitchen => "A whiskey glass on the kitchen counter",
-            World.World.LocationType.Garden => "A whiskey glass on a garden bench",
-            World.World.LocationType.Outside => "A whiskey glass on the ground",
+            NightOfTheCrabs.World.World.LocationType.House => "A whiskey glass on a table besides the arm-chair",
+            NightOfTheCrabs.World.World.LocationType.Kitchen => "A whiskey glass on the kitchen counter",
+            NightOfTheCrabs.World.World.LocationType.Garden => "A whiskey glass on a garden bench",
+            NightOfTheCrabs.World.World.LocationType.Outside => "A whiskey glass on the ground",
             _ => "A whiskey glass"
         };
 

@@ -1,32 +1,34 @@
+using NightOfTheCrabs.World;
 using static NightOfTheCrabs.Output;
-
 namespace NightOfTheCrabs;
-
-using Inventory_Inventory = Inventory.Inventory;
+using Inv = Inventory.Inventory;
 
 public class MainGameClass
 {
     private readonly World.World _world;
     private readonly CommandHandler _commandHandler;
-
-    private string[] _direction = new[]
-    {
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private readonly Inv _inv;
+    private readonly bool _gameBeat;
+    private readonly string[] _direction =
+    [
         "north", "n",
         "south", "s",
         "east", "e",
         "west", "w",
         "up", "u",
         "down", "d"
-    };
+    ];
 
-    public MainGameClass()
+    public MainGameClass(bool gameBeat)
     {
+        _gameBeat = gameBeat;
         _world = new World.World();
-        var inv = new Inventory_Inventory(_world);
-        _commandHandler = new CommandHandler(_world, inv, _direction);
+        _inv = new Inv(_world);
+        _commandHandler = new CommandHandler(_world, _inv, _direction);
     }
 
-    private bool _gameBeat = false;
+    
 
     public void StartGame()
     {
@@ -41,7 +43,7 @@ public class MainGameClass
         // Force full description of starting location
         _world.DescribeCurrentLocation(forceFullDescription: true);
         TypeWriteLine("What do you do?");
-        while (true)
+        while (true && !_gameBeat)
         {
             TypeWrite("? ");
 
@@ -54,9 +56,6 @@ public class MainGameClass
             _commandHandler.HandleCommand(userAction);
         }
 
-        if (_gameBeat)
-            TypeWriteLine("You beat the game!");
-        else
-            TypeWriteLine("You lost.");
+        TypeWriteLine(_gameBeat ? "You beat the game!" : "You lost.");
     }
 }
