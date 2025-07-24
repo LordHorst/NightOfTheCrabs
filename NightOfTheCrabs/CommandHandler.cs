@@ -18,15 +18,42 @@ public enum CommandType
     Unknown
 }
 
-public class CommandHandler(World.World world, Inventory_Inventory inv, string[] direction)
+public class CommandHandler
 {
-    private static readonly string[] ExitCommands = ["quit", "exit"];
-    private static readonly string[] TakeCommands = ["take", "pick up"];
-    private static readonly string[] DropCommands = ["drop", "put down"];
-    private static readonly string[] MoveCommands = ["go", "move", "run"];
-    private static readonly string[] ExamineCommands = ["examine", "look"];
-    private static readonly string[] InventoryCommands = ["list", "inventory", "inv", "i"];
-    private static readonly string[] TravelCommands = ["go", "travel", "head"];
+    private readonly World.World _world;
+    private readonly Inventory_Inventory _inv;
+    private readonly string[] _direction;
+
+    private static readonly Dictionary<string, CommandType> Commands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Single word commands
+        { "quit", CommandType.Exit },
+        { "exit", CommandType.Exit },
+        { "inventory", CommandType.Inventory },
+        { "inv", CommandType.Inventory },
+        { "i", CommandType.Inventory },
+        { "list", CommandType.Inventory }
+    };
+
+    private static readonly Dictionary<string, CommandType> PrefixCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "take", CommandType.Take },
+        { "pick up", CommandType.Take },
+        { "drop", CommandType.Drop },
+        { "put down", CommandType.Drop },
+        { "use", CommandType.Use },
+        { "examine", CommandType.ExamineItem },
+        { "look", CommandType.ExamineItem }
+    };
+
+    private static readonly string[] MovementPrefixes = ["go", "move", "run", "travel", "head"];
+
+    public CommandHandler(World.World world, Inventory_Inventory inv, string[] direction)
+    {
+        _world = world;
+        _inv = inv;
+        _direction = direction;
+    }
 
     public void HandleCommand(string userAction)
     {
@@ -34,7 +61,7 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
 #if DEBUG
         if (normalizedInput.Equals("cl"))
         {
-            Console.WriteLine(world.GetCurrentLocation());
+            Console.WriteLine(_world.GetCurrentLocationDebug());
             return;
         }
 #endif
@@ -46,25 +73,27 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
                 HandleExit();
                 break;
             case CommandType.Take:
-                HandleTakeCommand(remainingText);
+                HandleItemAction(remainingText, TakeItem, "take");
                 break;
             case CommandType.Drop:
-                HandleDropCommand(remainingText);
+                HandleItemAction(remainingText, DropItem, "drop");
                 break;
             case CommandType.Move:
                 HandleMoveCommand(normalizedInput);
                 break;
             case CommandType.Use:
-                HandleUseCommand(remainingText);
+                HandleItemAction(remainingText, item => UseItem(item), "use");
                 break;
             case CommandType.Examine:
-                world.DescribeCurrentLocation(forceFullDescription: true);
+                _world.DescribeCurrentLocation(forceFullDescription: true);
                 break;
             case CommandType.ExamineItem:
-                HandleExamineItemCommand(remainingText);
+                HandleItemAction(remainingText,
+                    item => TypeWriteLine(item?.Description ?? "I found no item to examine."),
+                    "examine");
                 break;
             case CommandType.Inventory:
-                inv.ListItems();
+                _inv.ListItems();
                 break;
             case CommandType.Unknown:
             default:
@@ -75,49 +104,34 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
 
     private (CommandType type, string remainingText) DetermineCommandTypeAndRemainingText(string input)
     {
-        // Check exact matches first
-        if (ExitCommands.Any(cmd => input.Equals(cmd)))
-            return (CommandType.Exit, string.Empty);
-        if (ExamineCommands.Any(cmd => input.Equals(cmd)))
-            return (CommandType.Examine, string.Empty);
-        if (InventoryCommands.Any(cmd => input.Equals(cmd)))
-            return (CommandType.Inventory, string.Empty);
+        if (Commands.TryGetValue(input, out var commandType))
+            return (commandType, string.Empty);
 
-        // Check for compound commands
-        foreach (var takeCmd in TakeCommands)
+        foreach (var (prefix, type) in PrefixCommands)
         {
-            if (input.StartsWith(takeCmd))
-                return (CommandType.Take, input[takeCmd.Length..].Trim());
+            if (input.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return (type, input[prefix.Length..].Trim());
         }
 
-        foreach (var dropCmd in DropCommands)
-        {
-            if (input.StartsWith(dropCmd))
-                return (CommandType.Drop, input[dropCmd.Length..].Trim());
-        }
-
-        foreach (var moveCmd in MoveCommands)
-        {
-            if (input.StartsWith(moveCmd))
-                return (CommandType.Move, input);
-        }
-
-        if (input.StartsWith("use"))
-            return (CommandType.Use, input[3..].Trim());
-
-        foreach (var examineCmd in ExamineCommands)
-        {
-            if (input.StartsWith(examineCmd) && input.Length > examineCmd.Length)
-                return (CommandType.ExamineItem, input[examineCmd.Length..].Trim());
-        }
-
-        if (direction.Contains(input))
+        if (MovementPrefixes.Any(prefix => input.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            || _direction.Contains(input))
             return (CommandType.Move, input);
 
-        if (string.IsNullOrEmpty(input))
-            input = string.Empty;
+        if (input.StartsWith("look around") || input.StartsWith("examine room"))
+            return (CommandType.Examine, string.Empty);
 
         return (CommandType.Unknown, input);
+    }
+    
+    private void HandleItemAction(string itemName, Action<Item?> action, string actionName)
+    {
+        if (string.IsNullOrWhiteSpace(itemName))
+        {
+            TypeWriteLine($"I don't know what to {actionName}.");
+            return;
+        }
+
+        action(GetItem(itemName));
     }
 
     private static void HandleExit()
@@ -126,183 +140,112 @@ public class CommandHandler(World.World world, Inventory_Inventory inv, string[]
         Environment.Exit(0);
     }
 
-    private void HandleTakeCommand(string itemName)
-    {
-        if (string.IsNullOrWhiteSpace(itemName))
-            TypeWriteLine("I don't know how to take that.");
-        else
-            TakeItem(itemName);
-    }
-
-    private void HandleDropCommand(string itemName)
-    {
-        if (string.IsNullOrWhiteSpace(itemName))
-            TypeWriteLine("I don't know how to drop that.");
-        else
-            DropItem(itemName);
-    }
-
-    private void HandleExamineItemCommand(string itemName)
-    {
-        var item = GetItem(itemName);
-        TypeWriteLine(item != null ? item.Description : "I found no item to examine.");
-    }
-
-    private void HandleUseCommand(string itemName)
-    {
-        var item = GetItem(itemName);
-        if (item != null)
-            UseItem(item);
-        else
-            TypeWriteLine("I found no item to use.");
-    }
-
     private void HandleMoveCommand(string input)
     {
-        // First try special travel destinations
-        if (TravelCommands.Any(cmd => input.StartsWith(cmd)))
+        if (MovementPrefixes.Any(cmd => input.StartsWith(cmd, StringComparison.OrdinalIgnoreCase)))
         {
             var destination = input.Split(' ', 2)[1];
-            // either we get to our new destination or we don't. We need to exit here either way
-            world.TryTravelTo(destination);
-            return;
-        }
-        else if (world.TryTravelTo(input)) // Try direct destination name
-        {
+            _world.TryTravelTo(destination);
             return;
         }
 
-        // If not a special desitnation, try nomal direction movement
-        foreach (var direction1 in direction)
+        if (_world.TryTravelTo(input))
+            return;
+
+        foreach (var direction in _direction)
         {
-            if (input.Contains(direction1))
+            if (input.Contains(direction))
             {
-                world.TryMove(direction1);
+                _world.TryMove(direction);
                 return;
             }
         }
     }
-
-    /*
-     * special item handlers
-     */
-    private void TakeItem(string itemName)
+    /* special item handlers */
+    private void TakeItem(Item? item)
     {
-        var currentLocation = world.GetCurrentLocation();
-        if (currentLocation == null)
-        {
-            TypeWriteLine("Something went wrong with the current location.");
-            return;
-        }
-
-        if (!currentLocation.HasItem(itemName))
-        {
-            TypeWriteLine($"There is no {itemName} here to take.");
-            return;
-        }
-
-        var item = currentLocation.GetItem(itemName);
         if (item == null)
         {
-            TypeWriteLine($"Failed to take the {item?.Name}.");
+            TypeWriteLine("That item doesn't exist.");
             return;
         }
 
-        // Check if item can be picked up before attempting to take it
+        var currentLocation = _world.GetCurrentLocation();
+        if (currentLocation == null || !currentLocation.HasItem(item.Name))
+        {
+            TypeWriteLine($"There is no {item.Name} here to take.");
+            return;
+        }
+
         if (!item.CanBePickedUp)
         {
             TypeWriteLine(item.GetCantPickUpReason());
             return;
         }
 
-        item = currentLocation.RemoveItem(itemName);
-        if (item == null)
-        {
-            TypeWriteLine($"Failed to take the {item?.Name}.");
-            return;
-        }
-
-        if (inv.AddItem(item))
+        if (currentLocation.RemoveItem(item.Name) is { } removedItem && _inv.AddItem(removedItem))
         {
             item.OnPickUp();
             TypeWriteLine($"You pick up the {item.Name}.");
             return;
         }
 
-        // If inventory addition fails, put the item back in the location
-        currentLocation.AddItem(item);
         TypeWriteLine($"You couldn't pick up the {item.Name}.");
     }
 
-    private void DropItem(string itemName)
+    private void DropItem(Item? item)
     {
-        var currentLocation = world.GetCurrentLocation();
+        if (item == null)
+        {
+            TypeWriteLine("That item doesn't exist.");
+            return;
+        }
+
+        var currentLocation = _world.GetCurrentLocation();
         if (currentLocation == null)
         {
             TypeWriteLine("Something went wrong with the current location.");
             return;
         }
 
-        if (string.IsNullOrEmpty(itemName))
+        if (!_inv.HasItem(item.Name))
         {
-            TypeWriteLine("You need to specify an item to drop.");
+            TypeWriteLine($"You don't have {item.Name} to drop.");
             return;
         }
 
-        if (!inv.HasItem(itemName))
-        {
-            TypeWriteLine($"You don't have {itemName} to drop.");
-            return;
-        }
-
-        var item = inv.GetItem(itemName);
-        if (item == null)
-        {
-            TypeWriteLine($"Failed to get the {itemName} from your inventory.");
-            return;
-        }
-
-        if (inv.RemoveItem(itemName))
+        if (_inv.RemoveItem(item.Name))
         {
             item.OnDrop();
             currentLocation.AddItem(item);
-            TypeWriteLine(currentLocation.GetDropDescription(itemName));
+            TypeWriteLine(currentLocation.GetDropDescription(item.Name));
             return;
         }
 
-        TypeWriteLine($"Failed to drop the {itemName}.");
+        TypeWriteLine($"Failed to drop the {item.Name}.");
     }
 
     private Item? GetItem(string itemName)
     {
-        if (string.IsNullOrWhiteSpace(itemName)) return null;
+        if (string.IsNullOrWhiteSpace(itemName)) 
+            return null;
 
-        var currentLocation = world.GetCurrentLocation();
-
-        // Try to find item in inventory first
-        var item = inv.GetItem(itemName);
-        if (item != null) return item;
-
-        // Then try to find in current location
-        if (currentLocation?.HasItem(itemName) == true)
-            return currentLocation.GetItem(itemName);
-
-        return null;
+        return _inv.GetItem(itemName) ?? 
+               _world.GetCurrentLocation()?.GetItem(itemName);
     }
 
     private void UseItem(Item? item)
     {
-        if (item is null)
+        if (item == null)
         {
-            TypeWriteLine("Something went wrong with the item, you cannot use it at the moment.");
+            TypeWriteLine("That item doesn't exist.");
             return;
         }
 
-        // making sure 'world' isn't NULL
-        item.SetGameState(world, inv);
-        var locationHasItem = world.GetCurrentLocation()?.HasItem(item.Name) ?? false;
-        var hasItem = inv.GetItem(item);
-        if (!hasItem && !locationHasItem)
+        item.SetGameState(_world, _inv);
+        var locationHasItem = _world.GetCurrentLocation()?.HasItem(item.Name) ?? false;
+
+        if (!_inv.HasItem(item.Name) && !locationHasItem)
         {
             TypeWriteLine($"You don't have a/the {item.Name} and you can't find it here.");
             return;
