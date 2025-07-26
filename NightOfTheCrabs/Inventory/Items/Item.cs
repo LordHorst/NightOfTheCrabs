@@ -2,7 +2,11 @@ using NightOfTheCrabs.World;
 using static NightOfTheCrabs.Output;
 namespace NightOfTheCrabs.Inventory.Items;
 
-public class Item(string name, string description, bool canBePickedUp = true, KnowledgeType? associatedKnowledge = null)
+public class Item(string name,
+    string description,
+    bool canBePickedUp = true,
+    KnowledgeType? associatedKnowledge = null,
+    string? cantPickupMessage = null)
 {
     public string Name { get; set; } = name;
     public string Description { get; protected set; } = description;
@@ -14,6 +18,7 @@ public class Item(string name, string description, bool canBePickedUp = true, Kn
     protected Inventory? Inventory;
     protected World.World? World;
     protected KnowledgeType? AssociatedKnowledge { get; init; } = associatedKnowledge;
+    protected string? CantPickupMessage { get; init; } = cantPickupMessage;
 
     protected bool Init()
     {
@@ -28,7 +33,7 @@ public class Item(string name, string description, bool canBePickedUp = true, Kn
             TypeWriteLine("Error: Inventory not properly initialized");
             return false;
         }
-
+        
         return true;
     }
     
@@ -98,7 +103,7 @@ public class Item(string name, string description, bool canBePickedUp = true, Kn
     }
     public virtual string GetCantPickUpReason()
     {
-        return CanBePickedUp ? string.Empty : $"The {Name} is too heavy to carry.";
+        return CanBePickedUp ? string.Empty : CantPickupMessage ?? $"The {Name} is too heavy to carry.";
     }
     public void OnPickUp()
     {

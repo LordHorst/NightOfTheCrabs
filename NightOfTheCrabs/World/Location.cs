@@ -8,7 +8,7 @@ public abstract class Location
 {
     private string Name { get; }
     private string Description { get; }
-    public WorldLocationType WorldLocationType { get; }
+    public WorldLocationType WorldLocationType { get; set; }
     public LocationType LocationType { get; }
     protected readonly List<Item> Items;
     private readonly Dictionary<string, Location?> _exits;
@@ -18,6 +18,7 @@ public abstract class Location
     {
         Name = name;
         Description = description;
+        WorldLocationType = worldLocationType;
         LocationType = locationType;
         Items = [];
         _exits = new Dictionary<string, Location?>();

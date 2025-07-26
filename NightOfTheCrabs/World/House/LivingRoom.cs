@@ -20,5 +20,7 @@ It is a room made for quiet thought, not comfort. A place to think, to plan. A s
     {
         AddItem(new Pipe());
         AddItem(new WhiskeyGlass());
+        AddItem(new Telegram());
+        //AddItem(new Sunglasses());
     }
 }

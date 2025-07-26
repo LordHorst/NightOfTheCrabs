@@ -7,16 +7,19 @@ public class MovementRestriction
     public WorldLocationType ToLocation { get; }
     public LocationRequirements Requirements { get; }
     public string RestrictionMessage { get; }
+    public bool ConfirmationRequired { get; }
 
     public MovementRestriction(
         WorldLocationType fromLocation, 
         WorldLocationType toLocation, 
         LocationRequirements requirements, 
-        string restrictionMessage)
+        string restrictionMessage,
+        bool confirmationRequired = false)
     {
         FromLocation = fromLocation;
         ToLocation = toLocation;
         Requirements = requirements;
         RestrictionMessage = restrictionMessage;
+        ConfirmationRequired = confirmationRequired;
     }
 }

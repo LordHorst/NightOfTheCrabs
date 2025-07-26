@@ -60,13 +60,19 @@ public class World
             return false;
         }
 
-        if (!CanMove(_currentLocation.WorldLocationType!, travelDest.WorldDestination))
+        if (_currentLocation == null || !CanMove(_currentLocation.WorldLocationType!, travelDest.WorldDestination))
         {
             return false;
         }
 
         TypeWriteLine(travelDest.TravelMessage);
         SetCurrentLocation(destination);
+        if (_currentLocation == null)
+        {
+            TypeWriteLine($"Something went wrong while trying to travel to the destination {destination}.");
+            return false;
+        }
+
         _currentLocation.DescribeLocation();
         return true;
     }
@@ -74,11 +80,7 @@ public class World
     private void SetCurrentLocation(string destination)
     {
         _travelDestinations.TryGetValue(destination, out var travelDest);
-        if (travelDest != null)
-        {
-            _currentLocation = travelDest.InitialLocation;
-            return;
-        }
+        _currentLocation = travelDest?.InitialLocation;
     }
     private void InitializeWorld()
     {
@@ -101,11 +103,13 @@ public class World
 
     private void InitTravelLocations(Location livingRoom)
     {
+        var hotel = new Hotel();
+        Console.WriteLine(hotel.WorldLocationType);
         AddTravelDestination(new TravelDestination(
             "llanbedr",
             ["hotel", "go llanbedr", "go hotel"],
             WorldLocationType.Llanbedr,
-            new Hotel(),
+            hotel,
             "After a long journey in your car, you arrive at the Llanbedr Hotel. The salty breeze carries whispers of something unnatural."
         ));
 
@@ -114,7 +118,8 @@ public class World
             ["house", "go home", "return home"],
             WorldLocationType.London,
             livingRoom,
-            "You return to your house, though the mysteries of Llanbedr still weigh heavily on your mind."
+            "The mysteries of Llanbedr still weigh heavily on your mind. You still decide you have done what you could. You return home.",
+            confirmationRequired: true
         ));
     }
     private void InitializeMovementRestrictions()
@@ -132,14 +137,12 @@ public class World
             WorldLocationType.Llanbedr,
             WorldLocationType.London,
             LocationRequirements.HasInformedMilitary,
-            "You can't return to the house now. Your mission awaits in Llanbedr."
+            "You can't return to the house now. Your mission awaits in Llanbedr.",
+            confirmationRequired: true
         ));
     }
     private bool CanMove(WorldLocationType from, WorldLocationType to)
     {
-        // var restriction = _movementRestrictions.FirstOrDefault(r => 
-        //     r.FromLocation == from.LocationType && 
-        //     r.ToLocation == to.LocationType);
         MovementRestriction? restriction = null;
         foreach (var r in _movementRestrictions)
         {
@@ -152,6 +155,18 @@ public class World
 
         if (restriction == null)
             return true;
+
+        if (restriction.ConfirmationRequired)
+        {
+            TypeWriteLine("You need to confirm your action. Do you want to go home? (Y/N)");
+            var res = Console.ReadKey();
+            if (res.Key != ConsoleKey.Y)
+            {
+                Console.WriteLine();
+                TypeWriteLine("You cannot bear the thought of not solving this mystery. You decide to stay.");
+                return false;
+            }
+        }
 
         // Check if all required items/conditions are met
         var requirements = restriction.Requirements;
@@ -228,6 +243,12 @@ public class World
     }
 
     public Location? GetCurrentLocation() => _currentLocation;
+    
+    public string? GetCurrentLocationDebug()
+    {
+        var loc = _currentLocation?.LocationType + " - " + _currentLocation?.WorldLocationType;
+        return loc;
+    }
 
     public void DescribeCurrentLocation()
     {

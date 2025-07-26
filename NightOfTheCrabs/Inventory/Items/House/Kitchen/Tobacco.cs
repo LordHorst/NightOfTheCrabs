@@ -18,7 +18,7 @@ public class Tobacco : Item
         
         var currentLocation = World?.GetCurrentLocation();
         if (Inventory != null && !Inventory.HasItem("pipe"))
-            TypeWriteLine("You consider chewing on your tobacco for a second, but decide against it.");
+            TypeWriteLine("You consider chewing on your tobacco for a second, but decide against it. This is not for chewing, this is for smoking.");
         else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine(
                 "Using your tobbacco here would make it quite wet.");
