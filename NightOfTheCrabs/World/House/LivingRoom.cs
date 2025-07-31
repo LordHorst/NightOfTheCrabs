@@ -1,9 +1,11 @@
 using NightOfTheCrabs.Inventory.Items.House.LivingRoom;
+using NightOfTheCrabs.Inventory.Items.House.LivingRoom.Bookshelf;
 using static NightOfTheCrabs.World.World;
 
 namespace NightOfTheCrabs.World.House;
 
-public class LivingRoom() : Location("Living Room",
+public class LivingRoom(World? world) : Location(world, 
+    "Living Room",
     @"
 The living room bears the quiet dignity of a man who lives alone and thinks deeply. Shelves of hardbound books line the walls—marine biology, natural history, a smattering of Latin texts, and journals with yellowed spines. The wallpaper is a muted, olive-toned damask, slightly faded by years of sunlight. A brass floor lamp casts a warm, honeyed glow over a worn leather armchair and the walnut side table beside it.
 A framed map of the British Isles hangs above the mantel, its edges curled from age. Below it, the fireplace gives off a modest heat, crackling gently with coal embers.
@@ -21,6 +23,7 @@ It is a room made for quiet thought, not comfort. A place to think, to plan. A s
         AddItem(new Pipe());
         AddItem(new WhiskeyGlass());
         AddItem(new Telegram());
-        //AddItem(new Sunglasses());
+        AddItem(new Bookshelf());
+        AddItem(new CrabBook());
     }
 }

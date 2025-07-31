@@ -1,5 +1,6 @@
+using NightOfTheCrabs.Inventory.Items;
 using NightOfTheCrabs.World.House;
-using NightOfTheCrabs.World.Llanbedr;
+using NightOfTheCrabs.World.Llanbedr.Hotel;
 using static NightOfTheCrabs.Output;
 
 namespace NightOfTheCrabs.World;
@@ -36,22 +37,31 @@ public class World
     }
     
     private Location? _currentLocation;
+    private readonly Inventory.Inventory _inventory = new();
     private readonly CharacterKnowledge _characterKnowledge = new();
-    private readonly List<MovementRestriction> _movementRestrictions = new();
+    private readonly List<MovementRestriction> _movementRestrictions = [];
     private readonly Dictionary<string, TravelDestination> _travelDestinations = new();
 
-    public World()
-    {
-        InitializeWorld();
-        InitializeMovementRestrictions();
-    }
-    public void AddTravelDestination(TravelDestination destination)
+    private void AddTravelDestination(TravelDestination destination)
     {
         _travelDestinations[destination.Command] = destination;
         foreach (var alias in destination.Aliases)
         {
             _travelDestinations[alias] = destination;
         }
+    }
+    public Inventory.Inventory GetInventory() => _inventory;
+
+    public void AddToInventory(Item item)
+    {
+        if (_inventory == null)
+            throw new Exception("Inventory is null");
+        if(!_inventory.HasItem(item))
+            _inventory.AddItem(item);
+    }
+    protected bool RemoveFromInventory(Item item)
+    {
+        return GetInventory() != null && GetInventory().RemoveItem(item.Name);
     }
     public bool TryTravelTo(string destination)
     {
@@ -60,7 +70,7 @@ public class World
             return false;
         }
 
-        if (_currentLocation == null || !CanMove(_currentLocation.WorldLocationType!, travelDest.WorldDestination))
+        if (_currentLocation == null || !CanMove(_currentLocation.WorldLocationType, travelDest.WorldDestination))
         {
             return false;
         }
@@ -82,11 +92,11 @@ public class World
         _travelDestinations.TryGetValue(destination, out var travelDest);
         _currentLocation = travelDest?.InitialLocation;
     }
-    private void InitializeWorld()
+    internal void InitializeWorld()
     {
         // Create locations
-        var kitchen = new Kitchen();
-        var livingRoom = new LivingRoom();
+        var kitchen = new Kitchen(this);
+        var livingRoom = new LivingRoom(this);
         
         // Add exits to locations
         kitchen.AddExit("south", livingRoom);
@@ -103,7 +113,7 @@ public class World
 
     private void InitTravelLocations(Location livingRoom)
     {
-        var hotel = new Hotel();
+        var hotel = new Hotel(this);
         Console.WriteLine(hotel.WorldLocationType);
         AddTravelDestination(new TravelDestination(
             "llanbedr",
@@ -118,11 +128,10 @@ public class World
             ["house", "go home", "return home"],
             WorldLocationType.London,
             livingRoom,
-            "The mysteries of Llanbedr still weigh heavily on your mind. You still decide you have done what you could. You return home.",
-            confirmationRequired: true
+            "The mysteries of Llanbedr still weigh heavily on your mind. You still decide you have done what you could. You return home."
         ));
     }
-    private void InitializeMovementRestrictions()
+    internal void InitializeMovementRestrictions()
     {
         // Add movement restrictions
         _movementRestrictions.Add(new MovementRestriction(
@@ -160,9 +169,9 @@ public class World
         {
             TypeWriteLine("You need to confirm your action. Do you want to go home? (Y/N)");
             var res = Console.ReadKey();
+            Console.WriteLine();
             if (res.Key != ConsoleKey.Y)
             {
-                Console.WriteLine();
                 TypeWriteLine("You cannot bear the thought of not solving this mystery. You decide to stay.");
                 return false;
             }
@@ -217,25 +226,18 @@ public class World
         return true;
     }
 
-    private string Translate(string direction)
+    private static string Translate(string direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case "n":
-                return "north";
-            case "e":
-                return "e";
-            case "w":
-                return "west";
-            case "s":
-                return "south";
-            case "u":
-                return "up";
-            case "d":
-                return "down";
-            default:
-                return "";
-        }
+            "n" => "north",
+            "e" => "e",
+            "w" => "west",
+            "s" => "south",
+            "u" => "up",
+            "d" => "down",
+            _ => ""
+        };
     }
     public void DescribeCurrentLocation(bool forceFullDescription = false)
     {
@@ -244,7 +246,7 @@ public class World
 
     public Location? GetCurrentLocation() => _currentLocation;
     
-    public string? GetCurrentLocationDebug()
+    public string GetCurrentLocationDebug()
     {
         var loc = _currentLocation?.LocationType + " - " + _currentLocation?.WorldLocationType;
         return loc;

@@ -14,9 +14,6 @@ public class Blender : Item
     
     public override string Use()
     {
-        if (!Init())
-            return "";
-        
         var currentLocation = World?.GetCurrentLocation();
         if (currentLocation is { LocationType: NightOfTheCrabs.World.World.LocationType.Underwater })
             TypeWriteLine(

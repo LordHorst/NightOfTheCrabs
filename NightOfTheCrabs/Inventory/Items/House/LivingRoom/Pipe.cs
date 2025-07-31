@@ -18,7 +18,7 @@ public class Pipe : Item
             return "";
         
         var currentLocation = World?.GetCurrentLocation();
-        if (Inventory != null && !Inventory.HasItem("tobacco"))
+        if (World?.GetInventory() != null && (!World.GetInventory().HasItem("tobacco"))!)
             TypeWriteLine("You really want to smoke your pipe, but you are missing a vital ingredient. You are out of tobacco!");
         else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine(

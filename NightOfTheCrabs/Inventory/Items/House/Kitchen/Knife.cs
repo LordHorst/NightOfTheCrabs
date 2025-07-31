@@ -7,14 +7,25 @@ public class Knife : Item
         : base("Knife", "A sharp kitchen knife. Be careful with it!")
     {
         CanBeUsed = true;
+        SetAllowedLocations(NightOfTheCrabs.World.World.LocationType.Kitchen);
     }
 
     public override string Use()
     {
-        if (!Init())
+        if (World == null)
+        {
+            TypeWriteLine("This item cannot be used");
             return "";
+        }
 
-        TypeWriteLine("You probably shouldn't wave that knife around.");
+        if (AllowedLocations is { Count: > 0 } && AllowedLocations.Contains(World.GetCurrentLocation()!.LocationType))
+        {
+            TypeWriteLine("You use the knife to cut some cheese. Uh-hu.");   
+        }
+        else
+        {
+            TypeWriteLine("You probably shouldn't wave that knife around.");    
+        }
         return "";
     }
 }

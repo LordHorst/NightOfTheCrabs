@@ -3,7 +3,7 @@ using static NightOfTheCrabs.World.World;
 
 namespace NightOfTheCrabs.World.House;
 
-public class Kitchen() : Location(
+public class Kitchen(World? world) : Location(world,
     "Kitchen",
     "A cozy kitchen with modern appliances. The counter is spotless and something smells delicious.",
     WorldLocationType.London,
@@ -11,9 +11,9 @@ public class Kitchen() : Location(
 {
     protected override void InitializeItems()
     {
-        Items.Add(new Knife());
-        Items.Add(new Cookie());
-        Items.Add(new Tobacco());
-        Items.Add(new Blender());
+        AddItem(new Knife());
+        AddItem(new Cookie());
+        AddItem(new Tobacco());
+        AddItem(new Blender());
     }
 }

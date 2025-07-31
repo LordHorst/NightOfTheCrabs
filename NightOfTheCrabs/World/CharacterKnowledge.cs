@@ -4,6 +4,8 @@ public enum KnowledgeType
 {
     HavePipe,
     HaveTobacco,
+    ExaminedBookshelf,
+    ReadTelegram,
     InformedMilitary
 }
 

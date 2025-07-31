@@ -2,8 +2,9 @@ using NightOfTheCrabs.Inventory.Items;
 using static NightOfTheCrabs.Output;
 namespace NightOfTheCrabs.Inventory;
 
-public class Inventory(World.World world)
+public class Inventory
 {
+    //private World.World World;
     private readonly List<Item?> _items = [];
 
     public bool AddItem(Item? item)
@@ -11,7 +12,9 @@ public class Inventory(World.World world)
         if (item == null)
             return false;
             
-        item.SetGameState(world, this);
+        //item.SetGameState(World, this);
+        if(item.Description.Equals(new Dummy().Description) )
+            return false;
         _items.Add(item);
         return true;
     }
@@ -19,19 +22,13 @@ public class Inventory(World.World world)
     public bool RemoveItem(Item? item)
     {
         var itemPresent = _items.Contains(item);
-        if (itemPresent)
-            return _items.Remove(item);
-        
-        return false;
+        return itemPresent && _items.Remove(item);
     }
     
     public bool RemoveItem(string itemName)
     {
         var itemPresent = _items.FirstOrDefault(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
-        if (itemPresent != null)
-            return _items.Remove(itemPresent);
-        
-        return false;
+        return itemPresent != null && _items.Remove(itemPresent);
     }
 
     public bool GetItem(Item? item)
@@ -41,10 +38,7 @@ public class Inventory(World.World world)
     public Item? GetItem(string itemName)
     {
         var itemPresent = _items.FirstOrDefault(i => i != null && i.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
-        if (itemPresent != null)
-            return itemPresent;
-        
-        return null;
+        return itemPresent ?? null;
     }
 
     public bool HasItem(Item? item)

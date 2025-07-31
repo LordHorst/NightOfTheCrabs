@@ -1,14 +1,12 @@
-using NightOfTheCrabs.World;
 using static NightOfTheCrabs.Output;
 namespace NightOfTheCrabs;
-using Inv = Inventory.Inventory;
 
 public class MainGameClass
 {
     private readonly World.World _world;
     private readonly CommandHandler _commandHandler;
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private readonly Inv _inv;
+    //private readonly Inv _inv;
     private readonly bool _gameBeat;
     private readonly string[] _direction =
     [
@@ -24,11 +22,11 @@ public class MainGameClass
     {
         _gameBeat = gameBeat;
         _world = new World.World();
-        _inv = new Inv(_world);
-        _commandHandler = new CommandHandler(_world, _inv, _direction);
+        _commandHandler = new CommandHandler(_world, _direction);
+        
+        _world.InitializeWorld();
+        _world.InitializeMovementRestrictions();
     }
-
-    
 
     public void StartGame()
     {
@@ -43,7 +41,7 @@ public class MainGameClass
         // Force full description of starting location
         _world.DescribeCurrentLocation(forceFullDescription: true);
         TypeWriteLine("What do you do?");
-        while (true && !_gameBeat)
+        while (!_gameBeat)
         {
             TypeWrite("? ");
 

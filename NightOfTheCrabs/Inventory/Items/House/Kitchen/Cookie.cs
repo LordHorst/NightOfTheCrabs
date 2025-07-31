@@ -1,7 +1,4 @@
-using static NightOfTheCrabs.World.World;
 using static NightOfTheCrabs.Output;
-using NightOfTheCrabs.Inventory;
-using NightOfTheCrabs.World;
 
 namespace NightOfTheCrabs.Inventory.Items.House.Kitchen;
 
@@ -18,9 +15,6 @@ public class Cookie : Item
 
     public override string Use()
     {
-        if (!Init())
-            return "";
-
         var currentLocation = World?.GetCurrentLocation();
         
         if(currentLocation?.LocationType == NightOfTheCrabs.World.World.LocationType.Underwater)
@@ -33,5 +27,16 @@ public class Cookie : Item
             TypeWriteLine("Something went wrong while trying to eat the cookie.");
         
         return "";
+    }
+    public override string GetLocationDescription(World.World.LocationType locationType)
+    {
+        return locationType switch
+        {
+            NightOfTheCrabs.World.World.LocationType.House => "A cookie on a wooden table",
+            NightOfTheCrabs.World.World.LocationType.Kitchen => "A cookie on the kitchen counter",
+            NightOfTheCrabs.World.World.LocationType.Garden => "A cookie on a garden bench",
+            NightOfTheCrabs.World.World.LocationType.Outside => "A cookie on the ground",
+            _ => "A cookie"
+        };
     }
 }

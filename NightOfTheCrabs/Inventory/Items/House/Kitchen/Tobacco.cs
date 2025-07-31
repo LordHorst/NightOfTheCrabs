@@ -13,11 +13,8 @@ public class Tobacco : Item
     
     public override string Use()
     {
-        if(!Init())
-            return "";
-        
         var currentLocation = World?.GetCurrentLocation();
-        if (Inventory != null && !Inventory.HasItem("pipe"))
+        if (World?.GetInventory() != null && (!World.GetInventory().HasItem("pipe"))!)
             TypeWriteLine("You consider chewing on your tobacco for a second, but decide against it. This is not for chewing, this is for smoking.");
         else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
             TypeWriteLine(

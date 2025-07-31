@@ -10,12 +10,18 @@ public abstract class Location
     private string Description { get; }
     public WorldLocationType WorldLocationType { get; set; }
     public LocationType LocationType { get; }
+    /// <summary>
+    /// DO NOT use this outside of this class!
+    /// Using Items.Add in a Location class will break the game!
+    /// </summary>
     protected readonly List<Item> Items;
     private readonly Dictionary<string, Location?> _exits;
     private bool _hasBeenVisited;
+    protected World? World;
 
-    protected Location(string name, string description, WorldLocationType worldLocationType, LocationType locationType)
+    protected Location(World? world, string name, string description, WorldLocationType worldLocationType, LocationType locationType)
     {
+        World = world;
         Name = name;
         Description = description;
         WorldLocationType = worldLocationType;
@@ -37,6 +43,7 @@ public abstract class Location
 
     public void AddItem(Item item)
     {
+        item.SetWorld(World);
         Items.Add(item);
     }
 
@@ -67,17 +74,19 @@ public abstract class Location
             TypeWriteLine(Description);
             _hasBeenVisited = true;
         }
-
-        if (Items.Any())
+        
+        if (Items.Count != 0)
         {
             TypeWriteLine("\nYou can see:");
             foreach (var item in Items.ToList())
             {
-                TypeWriteLine($"- {item.GetLocationDescription(LocationType)}");
+                var locDesc = item.GetLocationDescription(LocationType);
+                if(!string.IsNullOrWhiteSpace(locDesc))
+                    TypeWriteLine($"- {locDesc}");
             }
         }
 
-        if (_exits.Any())
+        if (_exits.Count != 0)
         {
             TypeWriteLine("\nExits:");
             foreach (var exit in _exits)
@@ -103,10 +112,7 @@ public abstract class Location
     public Item? GetItem(string possItem)
     {
         var itemPresent =
-            Items.FirstOrDefault(i => i != null && i.Name.Equals(possItem, StringComparison.OrdinalIgnoreCase));
-        if (itemPresent != null)
-            return itemPresent;
-
-        return null;
+            Items.FirstOrDefault(i => i != null && (i.Name.Equals(possItem, StringComparison.OrdinalIgnoreCase) || i.AlternateNames != null && (bool)i.AlternateNames?.Contains(possItem)));
+        return itemPresent ?? null;
     }
 }

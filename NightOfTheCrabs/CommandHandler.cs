@@ -3,8 +3,6 @@ using static NightOfTheCrabs.Output;
 
 namespace NightOfTheCrabs;
 
-using Inventory_Inventory = Inventory.Inventory;
-
 public enum CommandType
 {
     Exit,
@@ -21,7 +19,7 @@ public enum CommandType
 public class CommandHandler
 {
     private readonly World.World _world;
-    private readonly Inventory_Inventory _inv;
+    //private readonly Inventory_Inventory _inv;
     private readonly string[] _direction;
 
     private static readonly Dictionary<string, CommandType> Commands = new(StringComparer.OrdinalIgnoreCase)
@@ -48,10 +46,10 @@ public class CommandHandler
 
     private static readonly string[] MovementPrefixes = ["go", "move", "run", "travel", "head"];
 
-    public CommandHandler(World.World world, Inventory_Inventory inv, string[] direction)
+    public CommandHandler(World.World world, /*Inventory_Inventory inv, */string[] direction)
     {
         _world = world;
-        _inv = inv;
+        //_inv = inv;
         _direction = direction;
     }
 
@@ -82,18 +80,18 @@ public class CommandHandler
                 HandleMoveCommand(normalizedInput);
                 break;
             case CommandType.Use:
-                HandleItemAction(remainingText, item => UseItem(item), "use");
+                HandleItemAction(remainingText, UseItem, "use");
                 break;
             case CommandType.Examine:
                 _world.DescribeCurrentLocation(forceFullDescription: true);
                 break;
             case CommandType.ExamineItem:
                 HandleItemAction(remainingText,
-                    item => TypeWriteLine(item?.Description ?? "I found no item to examine."),
+                    item => TypeWriteLine(item?.Examine() ?? "I found no item to examine."),
                     "examine");
                 break;
             case CommandType.Inventory:
-                _inv.ListItems();
+                _world.GetInventory().ListItems();
                 break;
             case CommandType.Unknown:
             default:
@@ -106,6 +104,15 @@ public class CommandHandler
     {
         if (Commands.TryGetValue(input, out var commandType))
             return (commandType, string.Empty);
+        
+        if (input.StartsWith("look around") 
+            || input.StartsWith("examine room")
+            || input.StartsWith("examine area")
+            || input.StartsWith("examine location")
+            || input.Equals("look")
+            || input.Equals("examine")
+            || input.Equals("search"))
+            return (CommandType.Examine, string.Empty);
 
         foreach (var (prefix, type) in PrefixCommands)
         {
@@ -116,9 +123,6 @@ public class CommandHandler
         if (MovementPrefixes.Any(prefix => input.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             || _direction.Contains(input))
             return (CommandType.Move, input);
-
-        if (input.StartsWith("look around") || input.StartsWith("examine room"))
-            return (CommandType.Examine, string.Empty);
 
         return (CommandType.Unknown, input);
     }
@@ -179,11 +183,16 @@ public class CommandHandler
 
         if (!item.CanBePickedUp)
         {
-            TypeWriteLine(item.GetCantPickUpReason());
-            return;
+            var reason = item.GetCantPickUpReason();
+
+            if (!string.IsNullOrEmpty(reason)) // we can pick it up after all
+            {
+                TypeWriteLine(reason);
+                return;
+            }
         }
 
-        if (currentLocation.RemoveItem(item.Name) is { } removedItem && _inv.AddItem(removedItem))
+        if (currentLocation.RemoveItem(item.Name) is { } removedItem && _world.GetInventory().AddItem(removedItem))
         {
             item.OnPickUp();
             TypeWriteLine($"You pick up the {item.Name}.");
@@ -208,13 +217,13 @@ public class CommandHandler
             return;
         }
 
-        if (!_inv.HasItem(item.Name))
+        if (!_world.GetInventory().HasItem(item.Name))
         {
             TypeWriteLine($"You don't have {item.Name} to drop.");
             return;
         }
 
-        if (_inv.RemoveItem(item.Name))
+        if (_world.GetInventory().RemoveItem(item.Name))
         {
             item.OnDrop();
             currentLocation.AddItem(item);
@@ -230,8 +239,7 @@ public class CommandHandler
         if (string.IsNullOrWhiteSpace(itemName)) 
             return null;
 
-        return _inv.GetItem(itemName) ?? 
-               _world.GetCurrentLocation()?.GetItem(itemName);
+        return _world.GetInventory().GetItem(itemName) ?? _world.GetCurrentLocation()?.GetItem(itemName);
     }
 
     private void UseItem(Item? item)
@@ -242,10 +250,9 @@ public class CommandHandler
             return;
         }
 
-        item.SetGameState(_world, _inv);
         var locationHasItem = _world.GetCurrentLocation()?.HasItem(item.Name) ?? false;
 
-        if (!_inv.HasItem(item.Name) && !locationHasItem)
+        if (!_world.GetInventory().HasItem(item.Name) && !locationHasItem)
         {
             TypeWriteLine($"You don't have a/the {item.Name} and you can't find it here.");
             return;

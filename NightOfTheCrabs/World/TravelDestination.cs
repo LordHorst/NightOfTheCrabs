@@ -6,20 +6,17 @@ public class TravelDestination
     public string Command { get; }
     public string[] Aliases { get; }
     public WorldLocationType WorldDestination { get; }
-    private readonly Location _initialLocationTemplate;
     public string TravelMessage { get; }
-    public bool ConfirmationRequired { get; }
 
     public TravelDestination(string command, string[] aliases, WorldLocationType worldDestination, 
-        Location initialLocation, string travelMessage, bool confirmationRequired = false)
+        Location initialLocation, string travelMessage)
     {
         Command = command;
         Aliases = aliases;
         WorldDestination = worldDestination;
-        _initialLocationTemplate = initialLocation;
+        InitialLocation = initialLocation;
         TravelMessage = travelMessage;
-        ConfirmationRequired = confirmationRequired;
     }
 
-    public Location InitialLocation => WorldDestination.ToLocation();
+    public Location InitialLocation { get; }
 }

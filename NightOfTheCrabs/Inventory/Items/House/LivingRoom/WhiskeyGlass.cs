@@ -7,7 +7,7 @@ public class WhiskeyGlass : Item
     private bool _isFull = true;
 
     public WhiskeyGlass()
-        : base("Whiskey Glass", "A whiskey glass. It is full.")
+        : base("Whiskey Glass", "A whiskey glass. It is full.", alternateNames: ["whiskey", "glass"])
     {
         CanBeUsed = true;
         SetDisallowedLocations(NightOfTheCrabs.World.World.LocationType.Underwater);
@@ -21,7 +21,7 @@ public class WhiskeyGlass : Item
         if (_isFull)
         {
             var currentLocation = World?.GetCurrentLocation();
-            if (Inventory != null && !Inventory.HasItem("tobacco"))
+            if (World?.GetInventory() != null && !World.GetInventory().HasItem("tobacco"))
                 TypeWriteLine(
                     "You really want to smoke your pipe, but you are missing a vital ingredient. You are out of tobacco!");
             else if (currentLocation != null && DisallowedLocations.Contains(currentLocation.LocationType))
